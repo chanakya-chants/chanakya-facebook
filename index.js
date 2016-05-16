@@ -43,21 +43,24 @@
         var event = req.body.entry[0].messaging[i];
         var sender = event.sender.id;
 
-        if (_.isUndefined(chatSession[sender])) {
+        var chatSession = C.getSession[sender];
+
+        if (_.isUndefined(chatSession)) {
           https.get('https://graph.facebook.com/v2.6/' + sender + '?access_token=' + app.token, function (res) {
             res.setEncoding('utf8');
             res.on('data', function (d) {
               d = JSON.parse(d);
               d.id = sender;
               d.expectation = app.expectation;
-              chatSession[sender] = _.clone(d);
-              C.handleMessage(event, chatSession[sender]);
+              chatSession = _.clone(d);
+              C.setSession(chatSession);
+              C.handleMessage(event, chatSession);
             });
           }).on('error', function (e) {
             console.error(e);
           });
         } else {
-          C.handleMessage(event, chatSession[sender]);
+          C.handleMessage(event, chatSession);
         }
       }
       res.sendStatus(200);
