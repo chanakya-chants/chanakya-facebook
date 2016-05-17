@@ -7,8 +7,6 @@
     path = require('path'),
     C = require('chanakya');
 
-  var chatSession = {};
-
   var fb = {};
 
   fb.init = function (app) {
