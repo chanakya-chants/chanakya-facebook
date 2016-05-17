@@ -5,7 +5,8 @@
     bodyParser = require('body-parser'),
     https = require('https'),
     path = require('path'),
-    C = require('chanakya');
+    C = require('chanakya'),
+    JSONbig = require('json-bigint');
 
   var fb = {};
 
@@ -13,8 +14,7 @@
     server.set('port', (process.env.PORT || 3000));
 
     server.use(bodyParser.urlencoded({extended: false}));
-    server.use(bodyParser.json());
-    server.use('/img', express.static(__dirname + '/img'));
+    server.use(bodyParser.text({type: 'application/json'}));
 
     server.get('/', function (req, res) {
       res.sendFile(path.join(__dirname, '../../public', 'index.html'));
@@ -35,32 +35,28 @@
 
     server.post('/webhook/', function (req, res) {
 
-      messaging_events = req.body.entry[0].messaging;
+      var body = JSONbig.parse(req.body);
 
-      for (i = 0; i < messaging_events.length; i++) {
-        var event = req.body.entry[0].messaging[i];
-        var sender = event.sender.id;
-
-        var chatSession = C.getSession[sender];
-
-        if (_.isUndefined(chatSession)) {
+      _.each(body.entry[0].messaging, function (event) {
+        var sender = event.sender.id.toString();
+        if (_.isUndefined(chatSession[sender])) {
           https.get('https://graph.facebook.com/v2.6/' + sender + '?access_token=' + app.token, function (res) {
             res.setEncoding('utf8');
             res.on('data', function (d) {
               d = JSON.parse(d);
               d.id = sender;
               d.expectation = app.expectation;
-              chatSession = _.clone(d);
-              C.setSession(chatSession);
-              C.handleMessage(event, chatSession);
+              chatSession[sender] = _.clone(d);
+              handleMessage(event, chatSession[sender]);
             });
           }).on('error', function (e) {
             console.error(e);
           });
         } else {
-          C.handleMessage(event, chatSession);
+          handleMessage(event, chatSession[sender]);
         }
-      }
+      });
+      
       res.sendStatus(200);
     });
 
