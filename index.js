@@ -39,24 +39,27 @@
 
       _.each(body.entry[0].messaging, function (event) {
         var sender = event.sender.id.toString();
-        if (_.isUndefined(chatSession[sender])) {
+        var chatSession = C.getSession[sender];
+
+        if (_.isUndefined(chatSession)) {
           https.get('https://graph.facebook.com/v2.6/' + sender + '?access_token=' + app.token, function (res) {
             res.setEncoding('utf8');
             res.on('data', function (d) {
               d = JSON.parse(d);
               d.id = sender;
               d.expectation = app.expectation;
-              chatSession[sender] = _.clone(d);
-              handleMessage(event, chatSession[sender]);
+              chatSession = _.clone(d);
+              C.setSession(chatSession);
+              C.handleMessage(event, chatSession);
             });
           }).on('error', function (e) {
             console.error(e);
           });
         } else {
-          handleMessage(event, chatSession[sender]);
+          handleMessage(event, chatSession);
         }
       });
-      
+
       res.sendStatus(200);
     });
 
