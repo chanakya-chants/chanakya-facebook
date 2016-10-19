@@ -39,7 +39,7 @@
 
       _.each(body.entry[0].messaging, function(event) {
         var sender = event.sender.id.toString();
-        var chatSession = C.getSession(sender);
+        var chatSession = C.session.get(sender);
 
         if (_.isUndefined(chatSession)) {
           https.get('https://graph.facebook.com/v2.6/' + sender + '?access_token=' + app.token, function(res) {
@@ -49,7 +49,7 @@
               d.id = sender;
               d.expectation = app.expectation;
               chatSession = _.clone(d);
-              C.setSession(chatSession);
+              C.session.set(chatSession);
               C.handleMessage(event, chatSession);
             });
           }).on('error', function(e) {
