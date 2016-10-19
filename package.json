@@ -1,6 +1,6 @@
 {
   "name": "chanakya-facebook",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -18,7 +18,7 @@
   "homepage": "https://github.com/chanakya-chants/chanakya-facebook#readme",
   "dependencies": {
     "body-parser": "^1.15.1",
-    "chanakya": "git@github.com:chanakya-chants/chanakya-core.git#feature/refactor",
+    "chanakya": "3.0.0",
     "express": "^4.13.4",
     "https": "^1.0.0",
     "json-bigint": "^0.2.0",
