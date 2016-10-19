@@ -1,12 +1,12 @@
 (function() {
   var _ = require('lodash'),
-      express = require('express'),
-      server = express(),
-      bodyParser = require('body-parser'),
-      https = require('https'),
-      path = require('path'),
-      C = require('chanakya'),
-      JSONbig = require('json-bigint');
+    express = require('express'),
+    server = express(),
+    bodyParser = require('body-parser'),
+    https = require('https'),
+    path = require('path'),
+    C = require('chanakya'),
+    JSONbig = require('json-bigint');
 
   var fb = {};
 
@@ -39,25 +39,29 @@
 
       _.each(body.entry[0].messaging, function(event) {
         var sender = event.sender.id.toString();
-        var chatSession = C.session.get(sender);
-
-        if (_.isUndefined(chatSession)) {
-          https.get('https://graph.facebook.com/v2.6/' + sender + '?access_token=' + app.token, function(res) {
-            res.setEncoding('utf8');
-            res.on('data', function(d) {
-              d = JSON.parse(d);
-              d.id = sender;
-              d.expectation = app.expectation;
-              chatSession = _.clone(d);
-              C.session.set(chatSession);
-              C.handleMessage(event, chatSession);
+        var chatSession;
+        C.session.get(sender).then(function(session){
+          chatSession = session;
+          if (_.isUndefined(chatSession) || _.isNull(chatSession)) {
+            https.get('https://graph.facebook.com/v2.6/' + sender + '?access_token=' + app.token, function(res) {
+              res.setEncoding('utf8');
+              res.on('data', function(d) {
+                d = JSON.parse(d);
+                d.id = sender;
+                d.expectation = app.expectation;
+                chatSession = _.clone(d);
+                C.session.set(chatSession);
+                C.handleMessage(event, chatSession);
+              });
+            }).on('error', function(e) {
+              console.error(e);
             });
-          }).on('error', function(e) {
-            console.error(e);
-          });
-        } else {
-          C.handleMessage(event, chatSession);
-        }
+          } else {
+            C.handleMessage(event, chatSession);
+          }
+        });
+
+
       });
 
       res.sendStatus(200);
